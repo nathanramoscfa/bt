@@ -1,7 +1,6 @@
 """
 A collection of Algos used to create Strategy logic.
 """
-from __future__ import division
 
 import abc
 import random
@@ -26,7 +25,6 @@ def run_always(f):
 
 
 class PrintDate(Algo):
-
     """
     This Algo simply print's the current date.
 
@@ -39,7 +37,6 @@ class PrintDate(Algo):
 
 
 class PrintTempData(Algo):
-
     """
     This Algo prints the temp data.
 
@@ -64,7 +61,6 @@ class PrintTempData(Algo):
 
 
 class PrintInfo(Algo):
-
     """
     Prints out info associated with the target strategy. Useful for debugging
     purposes.
@@ -93,7 +89,6 @@ class PrintInfo(Algo):
 
 
 class Debug(Algo):
-
     """
     Utility Algo that calls pdb.set_trace when triggered.
 
@@ -109,7 +104,6 @@ class Debug(Algo):
 
 
 class RunOnce(Algo):
-
     """
     Returns True on first run then returns False.
 
@@ -192,7 +186,6 @@ class RunPeriod(Algo):
 
 
 class RunDaily(RunPeriod):
-
     """
     Returns True on day change.
 
@@ -215,7 +208,6 @@ class RunDaily(RunPeriod):
 
 
 class RunWeekly(RunPeriod):
-
     """
     Returns True on week change.
 
@@ -238,7 +230,6 @@ class RunWeekly(RunPeriod):
 
 
 class RunMonthly(RunPeriod):
-
     """
     Returns True on month change.
 
@@ -261,7 +252,6 @@ class RunMonthly(RunPeriod):
 
 
 class RunQuarterly(RunPeriod):
-
     """
     Returns True on quarter change.
 
@@ -284,7 +274,6 @@ class RunQuarterly(RunPeriod):
 
 
 class RunYearly(RunPeriod):
-
     """
     Returns True on year change.
 
@@ -307,7 +296,6 @@ class RunYearly(RunPeriod):
 
 
 class RunOnDate(Algo):
-
     """
     Returns True on a specific set of dates.
 
@@ -332,7 +320,6 @@ class RunOnDate(Algo):
 
 
 class RunAfterDate(Algo):
-
     """
     Returns True after a date has passed
 
@@ -359,7 +346,6 @@ class RunAfterDate(Algo):
 
 
 class RunAfterDays(Algo):
-
     """
     Returns True after a specific number of 'warmup' trading days have passed
 
@@ -388,7 +374,6 @@ class RunAfterDays(Algo):
 
 
 class RunIfOutOfBounds(Algo):
-
     """
     This algo returns true if any of the target weights deviate by an amount greater
     than tolerance. For example, it will be run if the tolerance is set to 0.5 and
@@ -433,7 +418,6 @@ class RunIfOutOfBounds(Algo):
 
 
 class RunEveryNPeriods(Algo):
-
     """
     This algo runs every n periods.
 
@@ -473,7 +457,6 @@ class RunEveryNPeriods(Algo):
 
 
 class SelectAll(Algo):
-
     """
     Sets temp['selected'] with all securities (based on universe).
 
@@ -508,7 +491,6 @@ class SelectAll(Algo):
 
 
 class SelectThese(Algo):
-
     """
     Sets temp['selected'] with a set list of tickers.
 
@@ -542,7 +524,6 @@ class SelectThese(Algo):
 
 
 class SelectHasData(Algo):
-
     """
     Sets temp['selected'] based on all items in universe that meet
     data requirements.
@@ -611,7 +592,6 @@ class SelectHasData(Algo):
 
 
 class SelectN(Algo):
-
     """
     Sets temp['selected'] based on ranking temp['stat'].
 
@@ -668,7 +648,6 @@ class SelectN(Algo):
 
 
 class SelectMomentum(AlgoStack):
-
     """
     Sets temp['selected'] based on a simple momentum filter.
 
@@ -711,7 +690,6 @@ class SelectMomentum(AlgoStack):
 
 
 class SelectWhere(Algo):
-
     """
     Selects securities based on an indicator DataFrame.
 
@@ -771,7 +749,6 @@ class SelectWhere(Algo):
 
 
 class SelectRandomly(AlgoStack):
-
     """
     Sets temp['selected'] based on a random subset of
     the items currently in temp['selected'].
@@ -831,7 +808,6 @@ class SelectRandomly(AlgoStack):
 
 
 class SelectRegex(Algo):
-
     """
     Sets temp['selected'] based on a regex on their names.
     Useful when working with a large universe of different kinds of securities
@@ -858,7 +834,6 @@ class SelectRegex(Algo):
 
 
 class ResolveOnTheRun(Algo):
-
     """
     Looks at securities set in temp['selected'] and searches for names that
     match the names of "aliases" for on-the-run securities in the provided
@@ -905,7 +880,6 @@ class ResolveOnTheRun(Algo):
 
 
 class SetStat(Algo):
-
     """
     Sets temp['stat'] for use by downstream algos (such as SelectN).
 
@@ -913,11 +887,14 @@ class SetStat(Algo):
         * stat (str|DataFrame): A dataframe of the same dimension as target.universe
           If a string is passed, frame is accessed using target.get_data
           This is the preferred way of using the algo.
+        * lag (DateOffset): Lag interval. The stat used today is the one calculated
+          at today - lag
     Sets:
         * stat
     """
 
-    def __init__(self, stat):
+    def __init__(self, stat, lag=pd.DateOffset(days=0)):
+        self.lag = lag
         if isinstance(stat, pd.DataFrame):
             self.stat_name = None
             self.stat = stat
@@ -930,12 +907,16 @@ class SetStat(Algo):
             stat = self.stat
         else:
             stat = target.get_data(self.stat_name)
-        target.temp["stat"] = stat.loc[target.now]
+
+        t0 = target.now - self.lag
+        if t0 not in stat.index:
+            return False
+
+        target.temp["stat"] = stat.loc[t0]
         return True
 
 
 class StatTotalReturn(Algo):
-
     """
     Sets temp['stat'] with total returns over a given period.
 
@@ -972,7 +953,6 @@ class StatTotalReturn(Algo):
 
 
 class WeighEqually(Algo):
-
     """
     Sets temp['weights'] by calculating equal weights for all items in
     selected.
@@ -1004,7 +984,6 @@ class WeighEqually(Algo):
 
 
 class WeighSpecified(Algo):
-
     """
     Sets temp['weights'] based on a provided dict of ticker:weights.
 
@@ -1029,7 +1008,6 @@ class WeighSpecified(Algo):
 
 
 class ScaleWeights(Algo):
-
     """
     Sets temp['weights'] based on a scaled version of itself.
     Useful for going short, or scaling up/down when using
@@ -1056,7 +1034,6 @@ class ScaleWeights(Algo):
 
 
 class WeighTarget(Algo):
-
     """
     Sets target weights based on a target weight DataFrame.
 
@@ -1110,7 +1087,6 @@ class WeighTarget(Algo):
 
 
 class WeighInvVol(Algo):
-
     """
     Sets temp['weights'] based on the inverse volatility Algo.
 
@@ -1154,7 +1130,6 @@ class WeighInvVol(Algo):
 
 
 class WeighERC(Algo):
-
     """
     Sets temp['weights'] based on equal risk contribution algorithm.
 
@@ -1241,7 +1216,6 @@ class WeighERC(Algo):
 
 
 class WeighMeanVar(Algo):
-
     """
     Sets temp['weights'] based on mean-variance optimization.
 
@@ -1307,7 +1281,6 @@ class WeighMeanVar(Algo):
 
 
 class WeighRandomly(Algo):
-
     """
     Sets temp['weights'] based on a random weight vector.
 
@@ -1356,7 +1329,6 @@ class WeighRandomly(Algo):
 
 
 class LimitDeltas(Algo):
-
     """
     Modifies temp['weights'] based on weight delta limits.
 
@@ -1415,7 +1387,6 @@ class LimitDeltas(Algo):
 
 
 class LimitWeights(Algo):
-
     """
     Modifies temp['weights'] based on weight limits.
 
@@ -1619,7 +1590,6 @@ class PTE_Rebalance(Algo):
 
 
 class CapitalFlow(Algo):
-
     """
     Used to model capital flows. Flows can either be inflows or outflows.
 
@@ -1652,7 +1622,6 @@ class CapitalFlow(Algo):
 
 
 class CloseDead(Algo):
-
     """
     Closes all positions for which prices are equal to zero (we assume
     that these stocks are dead) and removes them from temp['weights'] if
@@ -1689,7 +1658,6 @@ class CloseDead(Algo):
 
 
 class SetNotional(Algo):
-
     """
     Sets the notional_value to use as the base for rebalancing for
     :class:`FixedIncomeStrategy <bt.core.FixedIncomeStrategy>` targets
@@ -1718,7 +1686,6 @@ class SetNotional(Algo):
 
 
 class Rebalance(Algo):
-
     """
     Rebalances capital based on temp['weights']
 
@@ -1792,7 +1759,6 @@ class Rebalance(Algo):
 
 
 class RebalanceOverTime(Algo):
-
     """
     Similar to Rebalance but rebalances to target
     weight over n periods.
@@ -1862,7 +1828,6 @@ class RebalanceOverTime(Algo):
 
 
 class Require(Algo):
-
     """
     Flow control Algo.
 
@@ -1984,7 +1949,6 @@ class SelectTypes(Algo):
 
 
 class ClosePositionsAfterDates(Algo):
-
     """
     Close positions on securities after a given date.
     This can be used to make sure positions on matured/redeemed securities are
@@ -2037,7 +2001,6 @@ class ClosePositionsAfterDates(Algo):
 
 
 class RollPositionsAfterDates(Algo):
-
     """
     Roll securities based on the provided map.
     This can be used for any securities which have "On-The-Run" and "Off-The-Run"
@@ -2095,7 +2058,6 @@ class RollPositionsAfterDates(Algo):
 
 
 class SelectActive(Algo):
-
     """
     Sets temp['selected'] based on filtering temp['selected'] to exclude
     those securities that have been closed or rolled after a certain date
@@ -2121,7 +2083,6 @@ class SelectActive(Algo):
 
 
 class ReplayTransactions(Algo):
-
     """
     Replay a list of transactions that were executed.
     This is useful for taking a blotter of actual trades that occurred,
@@ -2227,7 +2188,6 @@ def _get_unit_risk(security, data, index=None):
 
 
 class UpdateRisk(Algo):
-
     """
     Tracks a risk measure on all nodes of the strategy. To use this node, the
     ``additional_data`` argument on :class:`Backtest <bt.backtest.Backtest>` must
@@ -2260,9 +2220,9 @@ class UpdateRisk(Algo):
 
     def _setup_measure(self, target, set_history):
         """Setup a risk measure within the risk attributes on the node in question"""
-        target.risk[self.measure] = np.NaN
+        target.risk[self.measure] = np.nan
         if set_history:
-            target.risks[self.measure] = np.NaN
+            target.risks[self.measure] = np.nan
 
     def _set_risk_recursive(self, target, depth, unit_risk_frame):
         set_history = depth < self.history
@@ -2298,7 +2258,6 @@ class UpdateRisk(Algo):
 
 
 class PrintRisk(Algo):
-
     """
     This Algo prints the risk data.
 

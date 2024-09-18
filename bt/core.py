@@ -1,7 +1,6 @@
 """
 Contains the core building blocks of the framework.
 """
-from __future__ import division
 
 import math
 from copy import deepcopy
@@ -9,7 +8,6 @@ from copy import deepcopy
 import cython as cy
 import numpy as np
 import pandas as pd
-
 
 PAR = 100.0
 TOL = 1e-16
@@ -24,7 +22,6 @@ def is_zero(x):
 
 
 class Node(object):
-
     """
     The Node is the main building block in bt's tree structure design.
     Both StrategyBase and SecurityBase inherit Node. It contains the
@@ -321,7 +318,6 @@ class Node(object):
 
 
 class StrategyBase(Node):
-
     """
     Strategy Node. Used to define strategy logic within a tree.
     A Strategy's role is to allocate capital to it's children
@@ -548,7 +544,7 @@ class StrategyBase(Node):
                     vals[x.name] += x.positions
                 else:
                     vals[x.name] = x.positions
-        self._positions = vals
+        self._positions = vals.fillna(0.0)
         return vals
 
     def setup(self, universe, **kwargs):
@@ -1127,7 +1123,6 @@ class StrategyBase(Node):
 
 
 class SecurityBase(Node):
-
     """
     Security Node. Used to define a security within a tree.
     A Security's has no children. It simply models an asset that can be bought
@@ -1249,7 +1244,7 @@ class SecurityBase(Node):
         TimeSeries of positions.
         """
         # if accessing and stale - update first
-        if self._needupdate:
+        if self._needupdate or self.now != self.parent.now:
             self.update(self.root.now)
         if self.root.stale:
             self.root.update(self.root.now, None)
@@ -1945,7 +1940,6 @@ class CouponPayingHedgeSecurity(CouponPayingSecurity):
 
 
 class Algo(object):
-
     """
     Algos are used to modularize strategy logic so that strategy logic becomes
     modular, composable, more testable and less error prone. Basically, the
@@ -1981,7 +1975,6 @@ class Algo(object):
 
 
 class AlgoStack(Algo):
-
     """
     An AlgoStack derives from Algo runs multiple Algos until a
     failure is encountered.
@@ -2022,7 +2015,6 @@ class AlgoStack(Algo):
 
 
 class Strategy(StrategyBase):
-
     """
     Strategy expands on the StrategyBase and incorporates Algos.
 

@@ -1,15 +1,17 @@
 """
 Contains backtesting logic and objects.
 """
-from __future__ import division
+
 from copy import deepcopy
-import bt
+
 import ffn
-import pandas as pd
 import numpy as np
-from matplotlib import pyplot as plt
+import pandas as pd
 import pyprind
+from matplotlib import pyplot as plt
 from tqdm import tqdm
+
+import bt
 
 
 def run(*backtests):
@@ -81,7 +83,6 @@ def benchmark_random(backtest, random_strategy, nsim=100):
 
 
 class Backtest(object):
-
     """
     A Backtest combines a Strategy with data to
     produce a Result.
@@ -359,7 +360,6 @@ class Backtest(object):
 
 
 class Result(ffn.GroupStats):
-
     """
     Based on ffn's GroupStats with a few extra helper methods.
 
@@ -508,7 +508,6 @@ class Result(ffn.GroupStats):
 
 
 class RandomBenchmarkResult(Result):
-
     """
     RandomBenchmarkResult expands on Result to add methods specific
     to random strategy benchmarking.

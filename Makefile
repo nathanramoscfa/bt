@@ -11,13 +11,15 @@ test:
 	python -m pytest -vvv tests --cov=bt --junitxml=python_junit.xml --cov-report=xml --cov-branch --cov-report term
 
 lint:
-	python -m ruff bt setup.py docs/source/conf.py
+	python -m ruff check bt setup.py docs/source/conf.py
+	python -m ruff format --check bt setup.py docs/source/conf.py
 
 fix:
+	python -m ruff check --fix bt setup.py docs/source/conf.py
 	python -m ruff format bt setup.py docs/source/conf.py
 
 dist:
-	python setup.py sdist bdist_wheel
+	python setup.py sdist
 	python -m twine check dist/*
 
 upload: dist
